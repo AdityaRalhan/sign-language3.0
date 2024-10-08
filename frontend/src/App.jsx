@@ -1,35 +1,42 @@
-import { useState } from 'react'
-import reactLogo from './assets/react.svg'
-import viteLogo from '/vite.svg'
-import './App.css'
+import React, { useEffect, useState } from 'react';
 
 function App() {
-  const [count, setCount] = useState(0)
+  const [prediction, setPrediction] = useState('');
+
+  // Function to fetch the latest prediction from Flask
+  const fetchPrediction = async () => {
+    try {
+      const response = await fetch('http://localhost:8080/get_prediction');
+      const data = await response.json();
+      setPrediction(data.prediction);
+    } catch (error) {
+      console.error('Error fetching prediction:', error);
+    }
+  };
+
+  // Call fetchPrediction periodically (e.g., every 1 second)
+  useEffect(() => {
+    const interval = setInterval(fetchPrediction, 1000);  // Fetch every second
+    return () => clearInterval(interval);
+  }, []);
 
   return (
-    <>
+    <div style={{ textAlign: 'center' }}>
+      <h1>Real-Time Sign Language Detection</h1>
+
+      {/* Video feed from Flask */}
       <div>
-        <a href="https://vitejs.dev" target="_blank">
-          <img src={viteLogo} className="logo" alt="Vite logo" />
-        </a>
-        <a href="https://react.dev" target="_blank">
-          <img src={reactLogo} className="logo react" alt="React logo" />
-        </a>
+        <img
+          src="http://localhost:8080/video_feed"
+          alt="Video feed"
+          style={{ width: '80%', border: '1px solid black' }}
+        />
       </div>
-      <h1>Vite + React</h1>
-      <div className="card">
-        <button onClick={() => setCount((count) => count + 1)}>
-          count is {count}
-        </button>
-        <p>
-          Edit <code>src/App.jsx</code> and save to test HMR
-        </p>
-      </div>
-      <p className="read-the-docs">
-        Click on the Vite and React logos to learn more
-      </p>
-    </>
-  )
+
+      {/* Display the latest prediction */}
+      <h2>Prediction: {prediction}</h2>
+    </div>
+  );
 }
 
-export default App
+export default App;
